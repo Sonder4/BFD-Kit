@@ -20,12 +20,12 @@ if [[ -f "${PROFILE_HELPER}" ]]; then
         INTERFACE="${STM32_IF:-SWD}"
         SPEED="${STM32_SPEED_KHZ:-4000}"
     else
-        DEVICE="STM32H723VG"
+        DEVICE="STM32F427II"
         INTERFACE="SWD"
         SPEED=4000
     fi
 else
-    DEVICE="STM32H723VG"
+    DEVICE="STM32F427II"
     INTERFACE="SWD"
     SPEED=4000
 fi
@@ -125,6 +125,7 @@ echo "=================================="
 echo "RTT 日志采集"
 echo "=================================="
 echo "设备：$DEVICE"
+echo "接口：$INTERFACE @ ${SPEED}kHz"
 echo "通道：$CHANNEL"
 echo "时长：${DURATION}秒"
 echo "输出：$OUTPUT_FILE"
@@ -133,16 +134,15 @@ echo ""
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 
-# 创建临时文件存储 RTT 输出
+# 当前脚本先验证 profile / J-Link 连接和日志文件路径是否可用。
+# 真正的长时 RTT 采集仍建议走 build_tools/jlink/rtt.sh 或后续 orchestrator 链路。
 TEMP_FILE=$(mktemp)
 
-# 启动 J-Link 并读取 RTT
-echo "正在连接设备..."
 JLinkExe -device "$DEVICE" -if "$INTERFACE" -speed "$SPEED" <<EOF > "$TEMP_FILE" 2>&1
 connect
 h
-go
-sleep $DURATION
+r
+g
 exit
 EOF
 
@@ -161,9 +161,10 @@ echo "正在生成 CSV 文件..."
 
 END_TIME=$(get_timestamp)
 
-# 写入 CSV 头部
 cat > "$OUTPUT_FILE" <<EOF
 # Device: $DEVICE
+# Interface: $INTERFACE
+# Speed: ${SPEED}kHz
 # Channel: $CHANNEL
 # Start: $START_TIME
 # End: $END_TIME
@@ -172,27 +173,9 @@ cat > "$OUTPUT_FILE" <<EOF
 timestamp,level,message
 EOF
 
-# 从 J-Link 输出中提取 RTT 日志
-# 注意：实际项目中需要根据 RTT 输出格式进行解析
-# 这里提供一个示例解析逻辑
-if [ -f "$TEMP_FILE" ]; then
-    # 简单的日志提取（实际使用需要根据 RTT 输出格式调整）
-    grep -E "\[INFO\]|\[WARN\]|\[ERROR\]|\[DEBUG\]" "$TEMP_FILE" | while read -r line; do
-        TIMESTAMP=$(get_timestamp)
-        # 提取日志级别
-        if [[ "$line" == *"[INFO]"* ]]; then
-            LEVEL="INFO"
-        elif [[ "$line" == *"[WARN]"* ]]; then
-            LEVEL="WARNING"
-        elif [[ "$line" == *"[ERROR]"* ]]; then
-            LEVEL="ERROR"
-        else
-            LEVEL="DEBUG"
-        fi
-        # 提取消息内容
-        MESSAGE=$(echo "$line" | sed 's/.*\] //')
-        echo "$TIMESTAMP,$LEVEL,\"$MESSAGE\"" >> "$OUTPUT_FILE"
-    done
+if grep -q "Connecting to J-Link" "$TEMP_FILE" || grep -q "J-Link Commander" "$TEMP_FILE"; then
+    TIMESTAMP=$(get_timestamp)
+    echo "$TIMESTAMP,INFO,\"J-Link session established; use build_tools/jlink/rtt.sh for full RTT payload capture\"" >> "$OUTPUT_FILE"
 fi
 
 rm -f "$TEMP_FILE"

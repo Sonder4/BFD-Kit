@@ -54,7 +54,7 @@ MEMORY
 
 ## 与项目链接器脚本对比
 
-### Keil (project.sct)
+### Keil (RSCF_H7.sct)
 ```scat
 LR_IROM1 0x08000000 0x00100000  {  ; 1MB Flash
   ER_IROM1 0x08000000 0x00100000 { }
@@ -81,7 +81,7 @@ ITCMRAM (xrw)   : ORIGIN = 0x00000000, LENGTH = 64K
 python analyze_startup.py --startup startup_stm32h723xx.s --linker STM32H723VGTx_FLASH.ld
 
 # 使用 Keil 链接器脚本
-python analyze_startup.py --startup startup_stm32h723xx.s --linker project.sct
+python analyze_startup.py --startup startup_stm32h723xx.s --linker RSCF_H7.sct
 ```
 
 ### 输出文件

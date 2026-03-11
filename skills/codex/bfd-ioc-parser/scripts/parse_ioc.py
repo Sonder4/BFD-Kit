@@ -12,7 +12,7 @@ STM32CubeMX IOC Configuration Parser
 5. 版本管理 (保留最近N个版本)
 6. 链接器脚本分析 (动态提取内存配置)
 
-作者: BFD-Kit
+作者: RSCF_A Project
 日期: 2026-02-12
 """
 
@@ -1458,13 +1458,13 @@ def main():
   python parse_ioc.py --scan .
 
   # 扫描指定目录（递归）
-  python parse_ioc.py --scan ./example_projects --recursive
+  python parse_ioc.py --scan f:\\RC2026_STM\\h7 --recursive
 
   # 处理单个ioc文件
-  python parse_ioc.py --ioc ./example_projects/example_stm32_project/example_stm32h7.ioc
+  python parse_ioc.py --ioc f:\\RC2026_STM\\h7\\RC2026_h7\\RSCF_H7.ioc
 
   # 指定输出目录
-  python parse_ioc.py --ioc example_stm32h7.ioc --output ./my_output
+  python parse_ioc.py --ioc RSCF_H7.ioc --output ./my_output
 
   # 不保存历史版本
   python parse_ioc.py --scan . --no-history

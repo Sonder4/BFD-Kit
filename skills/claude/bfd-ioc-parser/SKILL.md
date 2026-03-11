@@ -5,6 +5,13 @@ description: Use when parsing STM32CubeMX .ioc files to extract hardware configu
 
 # BFD IOC Parser
 
+## Self-Improvement Loop (Required)
+
+- When this skill encounters a build, flash, debug, script-usage, or other workflow problem, do not stop at the local workaround after the issue is solved.
+- Record the resolved issue and lesson in `BFD-Kit/.learnings/ERRORS.md` and/or `BFD-Kit/.learnings/LEARNINGS.md`; unresolved capability gaps go to `BFD-Kit/.learnings/FEATURE_REQUESTS.md`.
+- Promote reusable fixes into the affected BFD-Kit asset in the same task when feasible: update the relevant `SKILL.md`, script, wrapper, or resource so the next run benefits by default.
+- When a learning is promoted into a skill or script, append a short entry to `BFD-Kit/.learnings/CHANGELOG.md` and mention the improvement in the task close-out.
+
 Use this skill to parse `.ioc` files and produce normalized configuration artifacts.
 
 ## Quick Start
@@ -27,12 +34,12 @@ python3 ./.codex/skills/bfd-ioc-parser/scripts/parse_ioc.py --scan ./example_pro
 
 ```bash
 # Parse a specific ioc file
-python3 ./.codex/skills/bfd-ioc-parser/scripts/parse_ioc.py --ioc ./example_projects/example_stm32_project/example_stm32h7.ioc
+python3 ./.codex/skills/bfd-ioc-parser/scripts/parse_ioc.py --ioc ./RSCF_A.ioc
 ```
 
 ```bash
 # Parse with explicit output directory
-python3 ./.codex/skills/bfd-ioc-parser/scripts/parse_ioc.py --ioc example_stm32h7.ioc --output ./logs/ioc_json
+python3 ./.codex/skills/bfd-ioc-parser/scripts/parse_ioc.py --ioc RSCF_A.ioc --output ./logs/ioc_json
 ```
 
 ## Workflow

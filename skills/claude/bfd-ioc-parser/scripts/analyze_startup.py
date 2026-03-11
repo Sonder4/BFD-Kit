@@ -11,7 +11,7 @@ STM32H7 启动文件和链接器脚本分析器
    - 支持 GCC (.ld) 格式
 3. 生成完整的内存映射JSON
 
-作者: BFD-Kit
+作者: RSCF_A Project
 日期: 2026-02-19
 """
 
@@ -422,10 +422,10 @@ def main():
         epilog="""
 使用示例:
   # 分析指定文件 (Keil + GCC)
-  python analyze_startup.py --startup startup_stm32h723xx.s --linker project.sct --linker STM32H723VGTx_FLASH.ld
+  python analyze_startup.py --startup startup_stm32h723xx.s --linker RC2026_h7.sct --linker STM32H723VGTx_FLASH.ld
 
   # 扫描目录自动查找文件
-  python analyze_startup.py --scan ./example_projects/example_stm32_project
+  python analyze_startup.py --scan f:\\RC2026_STM\\h7\\RC2026_h7
 
   # 指定输出文件
   python analyze_startup.py --scan . --output startup_analysis.json

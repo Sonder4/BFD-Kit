@@ -11,7 +11,7 @@ STM32 Register Viewer
 4. 寄存器历史记录
 5. 与SVD文件集成
 
-作者: BFD-Kit
+作者: RSCF_A Project
 日期: 2026-02-21
 """
 

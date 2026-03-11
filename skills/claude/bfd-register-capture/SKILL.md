@@ -5,6 +5,13 @@ description: Use when sampling STM32 peripheral registers, tracking register cha
 
 # BFD Register Capture
 
+## Self-Improvement Loop (Required)
+
+- When this skill encounters a build, flash, debug, script-usage, or other workflow problem, do not stop at the local workaround after the issue is solved.
+- Record the resolved issue and lesson in `BFD-Kit/.learnings/ERRORS.md` and/or `BFD-Kit/.learnings/LEARNINGS.md`; unresolved capability gaps go to `BFD-Kit/.learnings/FEATURE_REQUESTS.md`.
+- Promote reusable fixes into the affected BFD-Kit asset in the same task when feasible: update the relevant `SKILL.md`, script, wrapper, or resource so the next run benefits by default.
+- When a learning is promoted into a skill or script, append a short entry to `BFD-Kit/.learnings/CHANGELOG.md` and mention the improvement in the task close-out.
+
 Use this skill to capture register evidence with repeatable scripts.
 
 ## Quick Start
@@ -26,13 +33,13 @@ python3 ./.codex/skills/bfd-project-init/scripts/bootstrap.py --project-root . -
 ```
 
 ```bash
-# FDCAN1 key status registers
-./.codex/skills/bfd-register-capture/scripts/capture_registers.sh -p FDCAN1 -r CCCR,PSR,ECR,IR,TXBRP,RXF0S -d 5 -o logs/debug/fdcan1_status.csv
+# CAN1 key status registers (STM32F427 bxCAN)
+./.codex/skills/bfd-register-capture/scripts/capture_registers.sh -p CAN1 -r MCR,MSR,TSR,RF0R,RF1R,ESR,BTR -d 5 -o logs/debug/can1_status.csv
 ```
 
 ```bash
 # Fast status check
-./.codex/skills/bfd-register-capture/scripts/capture_registers.sh -p FDCAN1 -s
+./.codex/skills/bfd-register-capture/scripts/capture_registers.sh -p CAN1 -s
 ```
 
 ```bash

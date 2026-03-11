@@ -1,7 +1,7 @@
 {
   "seeded_at": "2026-03-04T17:34:47+08:00",
   "family": "f4",
-  "source": "../example_f4_project",
+  "source": "../RSCF_A",
   "copied": [
     "STM32F427.svd",
     "startup_stm32f427xx.s",

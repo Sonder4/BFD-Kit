@@ -25,6 +25,18 @@ BFD_SKILLS = [
     'bfd-user-feedback',
 ]
 
+LEGACY_DUPLICATE_SKILLS = [
+    'debug-tool',
+    'hardware-error-logger',
+    'ioc-parser',
+    'register-capture',
+    'rtt-logger',
+    'stm32-data-acquisition',
+    'stm32-debug-interface',
+    'stm32-flash-programmer',
+    'stm32-user-feedback',
+]
+
 NAMESPACE_MAP = {
     'codex': '.codex/skills',
     'claude': '.claude/skills',
@@ -51,7 +63,7 @@ def copy_tree(src: Path, dst: Path) -> None:
 
 
 def ensure_readme_files(repo_root: Path) -> None:
-    for rel in ['BFD-Kit/README.md', 'BFD-Kit/README-en.md', 'BFD-Kit/STM32_AGENT_PROMPT-zh.md']:
+    for rel in ['BFD-Kit/README.md', 'BFD-Kit/README-zh.md', 'BFD-Kit/STM32_AGENT_PROMPT-zh.md']:
         path = repo_root / rel
         if not path.is_file():
             raise FileNotFoundError(path)
@@ -116,6 +128,12 @@ def cutover(repo_root: Path) -> Dict[str, List[str]]:
             dst = active_root / skill
             copy_tree(src, dst)
             changed['cutover'].append(str(dst.relative_to(repo_root)))
+
+        for legacy_skill in LEGACY_DUPLICATE_SKILLS:
+            legacy_path = active_root / legacy_skill
+            if legacy_path.exists():
+                shutil.rmtree(legacy_path)
+                changed['cutover'].append(str(legacy_path.relative_to(repo_root)))
 
     templates_src = repo_root / 'BFD-Kit' / 'resources' / 'stm32' / 'templates'
     templates_dst = repo_root / '.codex' / 'stm32' / 'templates'

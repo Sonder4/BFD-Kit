@@ -29,15 +29,15 @@ RTT (Real-Time Transfer) 是SEGGER提供的高速实时数据传输技术：
 
 ### RTT 工具路径
 
-```
-J-Link RTT 工具目录: D:\STM32CubeCLT\Segger\JLink_V864a\
+```text
+J-Link 工具从系统 `PATH` 解析。
 
-主要工具:
-- JLink.exe          : 命令行调试器
-- JLinkGDBServer.exe : GDB服务器
-- JLinkRTTViewer.exe : RTT图形界面查看器
-- JLinkRTTClient.exe : RTT命令行客户端
-- JLinkRTTLogger.exe : RTT数据记录器
+常用工具:
+- JLinkExe             : 命令行调试器
+- JLinkGDBServerCLExe  : GDB 服务器
+- JLinkRTTViewer       : RTT 图形界面查看器
+- JLinkRTTClient       : RTT 命令行客户端
+- JLinkRTTLogger       : RTT 数据记录器
 ```
 
 ### 目标代码集成
@@ -96,16 +96,16 @@ SEGGER_RTT_printf(1, "DATA:%d,%d,%d\n", x, y, z); // 通道1：数据记录
 ### RTT Viewer 使用
 
 ```bash
-# 启动RTT Viewer
-JLinkRTTViewer.exe
+# 启动 RTT Viewer
+JLinkRTTViewer
 
 # 命令行参数
-JLinkRTTViewer.exe -device STM32H743VI -if SWD -speed 4000
+JLinkRTTViewer -device STM32F427II -if SWD -speed 4000
 ```
 
 **RTT Viewer 配置：**
 - Connection: USB
-- Device: STM32H743VI
+- Device: STM32F427II
 - Interface: SWD
 - Speed: 4000 kHz
 - RTT Control Block: Auto Detection
@@ -113,8 +113,8 @@ JLinkRTTViewer.exe -device STM32H743VI -if SWD -speed 4000
 ### RTT Logger 使用
 
 ```bash
-# 记录RTT数据到文件
-JLinkRTTLogger.exe -device STM32H743VI -if SWD -speed 4000 -rttchannel 0 -logfile data.log
+# 记录 RTT 数据到文件
+JLinkRTTLogger -device STM32F427II -if SWD -speed 4000 -rttchannel 0 -logfile data.log
 ```
 
 ---
@@ -123,19 +123,19 @@ JLinkRTTLogger.exe -device STM32H743VI -if SWD -speed 4000 -rttchannel 0 -logfil
 
 ### ST-Link 工具路径
 
-```
-ST-Link 工具目录: D:\STM32CubeCLT\STLink-gdb-server\
+```text
+ST-Link 工具从系统 `PATH` 解析。
 
-主要工具:
-- ST-LINK_gdbserver.exe : GDB调试服务器
-- ST-LINK_CLI.exe       : 命令行工具
+常用工具:
+- ST-LINK_gdbserver : GDB 调试服务器
+- ST-LINK_CLI       : 命令行工具
 ```
 
 ### GDB Server 启动
 
 ```bash
-# 启动GDB服务器（默认端口61234）
-ST-LINK_gdbserver.exe -p 61234 -m 1
+# 启动 GDB 服务器（默认端口 61234）
+ST-LINK_gdbserver -p 61234 -m 1
 
 # 参数说明:
 # -p : 端口号
@@ -151,7 +151,7 @@ ST-LINK_gdbserver.exe -p 61234 -m 1
 arm-none-eabi-gdb
 
 # GDB命令
-(gdb) file build/firmware.elf        # 加载符号
+(gdb) file ${STM32_ELF}               # 加载符号
 (gdb) target remote localhost:61234  # 连接目标
 (gdb) load                           # 加载程序（可选）
 
@@ -176,7 +176,7 @@ arm-none-eabi-gdb
 
 ```python
 # gdb_script.txt
-file build/firmware.elf
+file ${STM32_ELF}
 target remote localhost:61234
 set pagination off
 set logging file data.log
@@ -199,31 +199,27 @@ quit
 
 ## 内存区域监控
 
-### STM32H7 内存映射
+### STM32F427 内存映射
 
 | 区域 | 起始地址 | 结束地址 | 大小 | 说明 |
 |------|----------|----------|------|------|
-| ITCM SRAM | 0x00000000 | 0x0000FFFF | 64KB | 指令紧耦合内存 |
-| DTCM SRAM | 0x20000000 | 0x2001FFFF | 128KB | 数据紧耦合内存 |
-| SRAM1 | 0x24000000 | 0x2407FFFF | 512KB | 主SRAM (AXI总线) |
-| SRAM2 | 0x24080000 | 0x2409FFFF | 128KB | 辅助SRAM |
-| SRAM3 | 0x240A0000 | 0x240BFFFF | 128KB | 辅助SRAM |
-| SRAM4 | 0x38000000 | 0x3800FFFF | 64KB | 后备SRAM (D2域) |
-| Backup SRAM | 0x38800000 | 0x38800FFF | 4KB | 备份域SRAM |
-| Flash | 0x08000000 | 0x081FFFFF | 2MB | 主Flash |
+| CCM SRAM | 0x10000000 | 0x1000FFFF | 64KB | Core Coupled Memory |
+| SRAM1/2/3 | 0x20000000 | 0x2002FFFF | 192KB | 主 SRAM |
+| Backup SRAM | 0x40024000 | 0x40024FFF | 4KB | 备份域 SRAM |
+| Flash | 0x08000000 | 0x081FFFFF | 2MB | 主 Flash |
 
 ### 外设寄存器地址范围
 
 | 外设 | 起始地址 | 说明 |
 |------|----------|------|
-| GPIOA | 0x58020000 | GPIO端口A |
-| GPIOB | 0x58020400 | GPIO端口B |
+| GPIOA | 0x40020000 | GPIO端口A |
+| GPIOB | 0x40020400 | GPIO端口B |
 | USART1 | 0x40011000 | 串口1 |
 | USART2 | 0x40004400 | 串口2 |
 | SPI1 | 0x40013000 | SPI1 |
-| ADC1 | 0x40022000 | ADC1 |
+| ADC1 | 0x40012000 | ADC1 |
 | TIM1 | 0x40010000 | 定时器1 |
-| FDCAN1 | 0x4000A000 | CAN控制器 |
+| CAN1 | 0x40006400 | bxCAN 控制器 |
 
 ### 内存监控脚本
 
@@ -245,8 +241,7 @@ exit
         f.write(script)
     
     result = subprocess.run(
-        ['D:\\STM32CubeCLT\\Segger\\JLink_V864a\\JLink.exe', 
-         '-CommandFile', 'temp.jlink'],
+        ['JLinkExe', '-CommandFile', 'temp.jlink'],
         capture_output=True, text=True
     )
     
@@ -374,7 +369,7 @@ timestamp,ch0,ch1,ch2,ch3
 
 #### 带元数据注释
 ```csv
-# Device: STM32H743VI
+# Device: STM32F427II
 # Variable: g_adcBuffer
 # Sample Rate: 10000 Hz
 # Date: 2026-02-21T10:30:00Z
@@ -387,9 +382,9 @@ timestamp,value
 ```json
 {
   "metadata": {
-    "device": "STM32H743VI",
+    "device": "STM32F427II",
     "variable": "g_adcBuffer",
-    "address": "0x24000000",
+    "address": "0x20000000",
     "sample_rate": 10000,
     "sample_count": 1000,
     "timestamp": "2026-02-21T10:30:00Z",
@@ -603,10 +598,10 @@ class PreciseTimer:
 **解决方案：**
 ```bash
 # 检查连接
-JLink.exe -device STM32H743VI -if SWD -speed 1000
+JLinkExe -device STM32F427II -if SWD -speed 1000
 
 # 降低速度重试
-JLink.exe -device STM32H743VI -if SWD -speed 100
+JLinkExe -device STM32F427II -if SWD -speed 100
 
 # 复位目标
 # 在JLink命令中添加:
@@ -630,5 +625,5 @@ rsettype 0  # 硬件复位
 ## 参考链接
 
 - [SEGGER RTT 文档](https://www.segger.com/products/debug-probes/j-link/technology/about-real-time-transfer/)
-- [STM32H7 参考手册](https://www.st.com/resource/en/reference_manual/dm00176879.pdf)
+- [STM32F427 参考手册](https://www.st.com/resource/en/reference_manual/dm00031020.pdf)
 - [ARM Debug Interface](https://developer.arm.com/documentation/ihi0031/latest/)

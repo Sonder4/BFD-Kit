@@ -196,7 +196,7 @@ def report_error(
 
 
 if __name__ == "__main__":
-    monitor = StatusMonitor("example_stm32_project")
+    monitor = StatusMonitor("RC2026_h7")
 
     print("初始状态:", monitor.get_current_status())
 

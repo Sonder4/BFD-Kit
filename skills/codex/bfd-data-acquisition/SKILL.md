@@ -5,6 +5,13 @@ description: Use when acquiring STM32 runtime data from variables, memory region
 
 # BFD Data Acquisition
 
+## Self-Improvement Loop (Required)
+
+- When this skill encounters a build, flash, debug, script-usage, or other workflow problem, do not stop at the local workaround after the issue is solved.
+- Record the resolved issue and lesson in `BFD-Kit/.learnings/ERRORS.md` and/or `BFD-Kit/.learnings/LEARNINGS.md`; unresolved capability gaps go to `BFD-Kit/.learnings/FEATURE_REQUESTS.md`.
+- Promote reusable fixes into the affected BFD-Kit asset in the same task when feasible: update the relevant `SKILL.md`, script, wrapper, or resource so the next run benefits by default.
+- When a learning is promoted into a skill or script, append a short entry to `BFD-Kit/.learnings/CHANGELOG.md` and mention the improvement in the task close-out.
+
 Use this skill to collect runtime data and produce analysis-ready artifacts.
 
 ## Quick Start
@@ -42,6 +49,19 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
 ```
 
 ```bash
+# Runtime-published local variable capture
+python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
+  --elf "${STM32_ELF}" \
+  --pointer-symbol g_local_probe_addr \
+  --seq-symbol g_local_probe_seq \
+  --layout f32x1 \
+  --count 20 \
+  --interval-ms 20 \
+  --mode nonstop \
+  --output logs/data_acq/local_probe.csv
+```
+
+```bash
 # Analysis
 python3 ./.codex/skills/bfd-data-acquisition/scripts/data_analysis.py --input logs/data_acq/sensor_data.csv --stats
 python3 ./.codex/skills/bfd-data-acquisition/scripts/data_analysis.py --input logs/data_acq/sensor_data.csv --fft --output logs/data_acq/spectrum.png
@@ -60,11 +80,18 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_analysis.py --input lo
 - Save capture and analysis outputs under `logs/data_acq/`.
 - Match sampling rate to signal characteristics.
 - Confirm ELF symbols before variable-based capture.
+- For stack-local variables, publish the runtime address from firmware first; do not assume ELF alone can locate a live stack slot.
 
 ## Scripts
 
 - `.codex/skills/bfd-data-acquisition/scripts/data_acq.py`
 - `.codex/skills/bfd-data-acquisition/scripts/data_analysis.py`
+
+## Resources
+
+- `.codex/skills/bfd-data-acquisition/resources/local-probe/local_probe_runtime.h`
+- `.codex/skills/bfd-data-acquisition/resources/local-probe/local_probe_runtime.c`
+- `.codex/skills/bfd-data-acquisition/resources/local-probe/local_probe_integration.md`
 
 ## Related Skills
 

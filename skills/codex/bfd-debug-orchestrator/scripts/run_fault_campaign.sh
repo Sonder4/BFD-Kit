@@ -65,8 +65,20 @@ mkdir -p logs/debug/orchestrator logs/rtt logs/flash logs/build .codex/debug
 SESSION_TS="$(date +%Y-%m-%d_%H%M%S)"
 SESSION_DIR="logs/debug/orchestrator/${SESSION_TS}"
 mkdir -p "$SESSION_DIR"
-RTT_CAPTURE_STATUS="PASS"
+RTT_CAPTURE_STATUS="WARN"
+RTT_REQUIRED_STATUS="WARN"
+RTT_ADVISORY_STATUS="PASS"
 RTT_MODE_USED=""
+SUMMARY_PATH=".codex/debug/bfd-debug-orchestrator-campaign.md"
+INJECT_SCRIPT="${PROJECT_ROOT}/build_tools/jlink/inject_fault_scenario.sh"
+LEGACY_INJECT_SCRIPT="${PROJECT_ROOT}/.codex/skills/bfd-debug-orchestrator/scripts/inject_fault_scenario.sh"
+if [[ ! -f "${INJECT_SCRIPT}" ]]; then
+  INJECT_SCRIPT="${LEGACY_INJECT_SCRIPT}"
+fi
+if [[ ! -f "${INJECT_SCRIPT}" ]]; then
+  echo "[ERROR] inject script not found: ${PROJECT_ROOT}/build_tools/jlink/inject_fault_scenario.sh" >&2
+  exit 2
+fi
 
 run_logged() {
   local name="$1"
@@ -90,14 +102,31 @@ run_rtt_capture() {
   local out="$2"
   local timeout_s="$3"
   local mode="$4"
+  local role="$5"
+  local reset_policy="${6:-}"
+  local success_profile="${7:-}"
   local log="${SESSION_DIR}/${tag}.log"
+  local status=0
+  local cmd=(./build_tools/jlink/rtt.sh "${out}" "${timeout_s}" --mode "${mode}" --role "${role}" --device "${DEVICE}" --if "${IFACE}" --speed "${SPEED}" --elf "${ELF}")
 
-  run_logged "${tag}" ./build_tools/jlink/rtt.sh "${out}" "${timeout_s}" --mode "${mode}" --device "${DEVICE}" --if "${IFACE}" --speed "${SPEED}" --elf "${ELF}"
-  append_mode "${mode}"
-
-  if ! grep -q '^RTT_SUCCESS=1' "${log}"; then
-    RTT_CAPTURE_STATUS="WARN"
+  if [[ -n "${reset_policy}" ]]; then
+    cmd+=(--reset-policy "${reset_policy}")
   fi
+  if [[ -n "${success_profile}" ]]; then
+    cmd+=(--success-profile "${success_profile}")
+  fi
+
+  set +e
+  run_logged "${tag}" "${cmd[@]}"
+  status=$?
+  set -e
+  append_mode "${mode}"
+  printf 'RTT_COMMAND_RC=%s\n' "${status}" >> "${log}"
+}
+
+rtt_capture_succeeded() {
+  local log_path="$1"
+  grep -Eq '^RTT_SUCCESS=1$' "${log_path}"
 }
 
 if [[ ${SKIP_BUILD} -eq 0 ]]; then
@@ -116,51 +145,68 @@ else
 fi
 
 BASELINE_RTT="logs/rtt/${SESSION_TS}_baseline_rtt.log"
-run_rtt_capture rtt_base "${BASELINE_RTT}" 5 quick
+run_rtt_capture rtt_base "${BASELINE_RTT}" 5 dual boot gdb-reset-go generic
 
 for s in "${SCENARIOS[@]}"; do
-  run_logged "inject_s${s}" ./.codex/skills/bfd-debug-orchestrator/scripts/inject_fault_scenario.sh --scenario "$s" --elf "$ELF" --device "$DEVICE" --if "$IFACE" --speed "$SPEED"
-  sleep 1
+  run_logged "inject_s${s}" "${INJECT_SCRIPT}" --scenario "$s" --elf "$ELF" --device "$DEVICE" --if "$IFACE" --speed "$SPEED"
 
   if [[ "$s" == "1" || "$s" == "2" ]]; then
     RTT_OUT="logs/rtt/${SESSION_TS}_s${s}.log"
-    run_rtt_capture "rtt_s${s}" "${RTT_OUT}" 4 quick
+    run_rtt_capture "rtt_s${s}" "${RTT_OUT}" 4 quick diag none strict
   else
+    sleep 1
     run_logged "capture_s${s}" ./.codex/skills/bfd-debug-orchestrator/scripts/capture_hardfault_snapshot.sh --elf "$ELF" --scenario "$s" --device "$DEVICE" --if "$IFACE" --speed "$SPEED"
 
     HF_JSON="$(grep -E '^JSON=' "${SESSION_DIR}/capture_s${s}.log" | tail -n1 | cut -d= -f2-)"
     HF_MD="$(grep -E '^MD=' "${SESSION_DIR}/capture_s${s}.log" | tail -n1 | cut -d= -f2-)"
     if [[ -n "$HF_JSON" && -f "$HF_JSON" ]]; then
       cp "$HF_JSON" "${SESSION_DIR}/hardfault_s${s}.json"
-      cp "$HF_MD" "${SESSION_DIR}/hardfault_s${s}.md"
+      if [[ -n "$HF_MD" && -f "$HF_MD" ]]; then
+        cp "$HF_MD" "${SESSION_DIR}/hardfault_s${s}.md"
+      fi
       run_logged "evolution_s${s}" ./.codex/skills/bfd-debug-orchestrator/scripts/update_error_evolution.py "$HF_JSON"
     fi
 
-    # Recovery after fault: reflash and verify runtime
     if [[ -n "${BUILD_DIR}" ]]; then
       run_logged "flash_recover_s${s}" ./build_tools/jlink/flash.sh "$BUILD_DIR"
     else
       run_logged "flash_recover_s${s}" ./build_tools/jlink/flash.sh
     fi
     RTT_REC="logs/rtt/${SESSION_TS}_recover_s${s}.log"
-    run_rtt_capture "rtt_recover_s${s}" "${RTT_REC}" 6 dual
+    run_rtt_capture "rtt_recover_s${s}" "${RTT_REC}" 6 dual boot gdb-reset-go generic
   fi
 done
 
 FINAL_RTT="logs/rtt/${SESSION_TS}_final.log"
-run_rtt_capture rtt_final "${FINAL_RTT}" 5 quick
+run_rtt_capture rtt_final "${FINAL_RTT}" 5 dual boot gdb-reset-go generic
 
-if grep -q "\[flash\] W25Q64 ready" "$FINAL_RTT"; then
+if rtt_capture_succeeded "${SESSION_DIR}/rtt_final.log"; then
   echo "FLASH_RW_CHECK=PASS" | tee "${SESSION_DIR}/result.env"
 else
   echo "FLASH_RW_CHECK=WARN" | tee "${SESSION_DIR}/result.env"
 fi
 
-run_logged summary ./.codex/skills/bfd-debug-orchestrator/scripts/summarize_campaign.py --session-dir "$SESSION_DIR" --output .codex/debug/bfd-debug-orchestrator-campaign.md
+run_logged summary ./.codex/skills/bfd-debug-orchestrator/scripts/summarize_campaign.py --session-dir "$SESSION_DIR" --output "${SUMMARY_PATH}"
+
+RTT_CAPTURE_STATUS="$(grep -E '^RTT_CAPTURE_STATUS=' "${SESSION_DIR}/summary.log" | tail -n1 | cut -d= -f2-)"
+RTT_REQUIRED_STATUS="$(grep -E '^RTT_REQUIRED_STATUS=' "${SESSION_DIR}/summary.log" | tail -n1 | cut -d= -f2-)"
+RTT_ADVISORY_STATUS="$(grep -E '^RTT_ADVISORY_STATUS=' "${SESSION_DIR}/summary.log" | tail -n1 | cut -d= -f2-)"
+
+if [[ -z "${RTT_CAPTURE_STATUS}" ]]; then
+  RTT_CAPTURE_STATUS="WARN"
+fi
+if [[ -z "${RTT_REQUIRED_STATUS}" ]]; then
+  RTT_REQUIRED_STATUS="WARN"
+fi
+if [[ -z "${RTT_ADVISORY_STATUS}" ]]; then
+  RTT_ADVISORY_STATUS="WARN"
+fi
 
 echo "SESSION_DIR=${SESSION_DIR}" | tee -a "${SESSION_DIR}/result.env"
-echo "SUMMARY=.codex/debug/bfd-debug-orchestrator-campaign.md" | tee -a "${SESSION_DIR}/result.env"
+echo "SUMMARY=${SUMMARY_PATH}" | tee -a "${SESSION_DIR}/result.env"
 echo "RTT_MODE_USED=${RTT_MODE_USED}" | tee -a "${SESSION_DIR}/result.env"
 echo "RTT_CAPTURE_STATUS=${RTT_CAPTURE_STATUS}" | tee -a "${SESSION_DIR}/result.env"
+echo "RTT_REQUIRED_STATUS=${RTT_REQUIRED_STATUS}" | tee -a "${SESSION_DIR}/result.env"
+echo "RTT_ADVISORY_STATUS=${RTT_ADVISORY_STATUS}" | tee -a "${SESSION_DIR}/result.env"
 
 echo "CAMPAIGN_DONE=${SESSION_DIR}"

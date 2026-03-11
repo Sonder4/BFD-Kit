@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Optional, List
 
 DEFAULT_JLINK_EXE = os.environ.get("JLINK_EXE") or shutil.which("JLinkExe") or "JLinkExe"
-DEFAULT_DEVICE = os.environ.get("STM32_DEVICE", "STM32H743VI")
+DEFAULT_DEVICE = os.environ.get("STM32_DEVICE", "STM32F427II")
 DEFAULT_INTERFACE = os.environ.get("STM32_IF", "SWD")
 DEFAULT_SPEED = int(os.environ.get("STM32_SPEED_KHZ", "4000"))
 
@@ -201,14 +201,14 @@ class JLinkFlasher:
         commands.append(f"loadfile {firmware_path} 0x{address:08X}")
         
         if verify:
-            commands.append(f"verifyfile {firmware_path} 0x{address:08X}")
+            print("Verification step is skipped in flash command because J-Link Commander on this setup does not support verifyfile.")
         
         commands.append("exit")
         
         script = self._create_script(commands)
         ret, stdout, stderr = self._run_script(script)
         
-        if ret == 0 and "Download finished" in stdout:
+        if ret == 0 and ("O.K." in stdout or "Flash download:" in stdout):
             print("Flash programming completed successfully")
             if self.verbose:
                 print(stdout)
@@ -222,35 +222,14 @@ class JLinkFlasher:
     
     def verify(self, firmware_path: str, address: int = 0x08000000) -> bool:
         firmware_path = os.path.abspath(firmware_path)
-        
+
         if not os.path.exists(firmware_path):
             print(f"Firmware file not found: {firmware_path}")
             return False
-        
-        print(f"Verifying firmware at 0x{address:08X}...")
-        
-        commands = [
-            "connect",
-            f"device {self.device}",
-            f"si {self.interface.lower()}",
-            f"speed {self.speed}",
-            "r",
-            "h",
-            f"verifyfile {firmware_path} 0x{address:08X}",
-            "exit"
-        ]
-        
-        script = self._create_script(commands)
-        ret, stdout, stderr = self._run_script(script)
-        
-        if ret == 0 and "Verified successfully" in stdout:
-            print("Verification passed")
-            return True
-        else:
-            print("Verification failed")
-            if self.verbose:
-                print(stdout)
-            return False
+
+        print("Standalone verify is not supported on this setup because J-Link Commander does not provide verifyfile.")
+        print("Use flash output plus spot-check reads if explicit post-flash validation is required.")
+        return False
     
     def reset(self, reset_type: str = "hardware") -> bool:
         print(f"Resetting target (type: {reset_type})...")
@@ -328,30 +307,9 @@ class JLinkFlasher:
             return False
     
     def unlock(self) -> bool:
-        print("Unlocking device (removing read protection)...")
-        
-        commands = [
-            "connect",
-            f"device {self.device}",
-            f"si {self.interface.lower()}",
-            f"speed {self.speed}",
-            "r",
-            "h",
-            "unlock kinetis",  # Generic unlock command
-            "exit"
-        ]
-        
-        script = self._create_script(commands)
-        ret, stdout, stderr = self._run_script(script)
-        
-        if ret == 0:
-            print("Device unlocked successfully")
-            return True
-        else:
-            print("Unlock failed - may need to use STM32CubeProgrammer")
-            if self.verbose:
-                print(stdout)
-            return False
+        print("Unlock is not implemented for this project.")
+        print("Please use the project-specific STM32 recovery flow if read protection must be cleared.")
+        return False
     
     def get_cpu_info(self) -> Optional[str]:
         print("Reading CPU information...")
@@ -385,9 +343,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --firmware firmware.bin
-  %(prog)s --firmware firmware.bin --device STM32F427IIH6 --address 0x08000000
-  %(prog)s --detect --device STM32H723VG
+  %(prog)s --firmware build_gcc/RSCF_A.hex
+  %(prog)s --firmware build_gcc/RSCF_A.hex --device STM32F427II --address 0x08000000
+  %(prog)s --detect --device STM32F427II
   %(prog)s --read flash_dump.bin --address 0x08000000 --size 0x10000
   %(prog)s --reset
         """

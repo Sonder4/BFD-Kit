@@ -112,7 +112,7 @@ def create_error_feedback(
 
 
 if __name__ == "__main__":
-    collector = FeedbackCollector("example_stm32_project")
+    collector = FeedbackCollector("RC2026_h7")
 
     feedback = create_confirmation_feedback(
         collector=collector,

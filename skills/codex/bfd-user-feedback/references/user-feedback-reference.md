@@ -10,7 +10,7 @@
 {
     "timestamp": "2026-02-21T10:30:00+08:00",
     "feedback_type": "user_confirmation",
-    "project_name": "example_stm32_project",
+    "project_name": "RC2026_h7",
     "project_status": "building",
     "summary": "代码修改完成，请确认",
     "details": {
@@ -149,7 +149,7 @@ result = mcp_feedback_enhanced(
 
 ```python
 result = mcp_feedback_enhanced(
-    title="example_stm32_project - 构建完成",
+    title="RC2026_h7 - 构建完成",
     summary="""
 ## 构建结果
 
