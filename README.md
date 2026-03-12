@@ -18,6 +18,7 @@ It standardizes IOC discovery, active profile generation, flashing, RTT logging,
 - `BFD-Kit/resources/stm32/templates/`: family templates (`f4/`, `h7/`)
 - `BFD-Kit/init_project.sh`: one-command project onboarding entry
 - `BFD-Kit/scripts/migrate_bfd_skills.py`: import/cutover utility
+- `BFD-Kit/MAINTENANCE-zh.md`: maintainer-facing sync and publishing rules
 
 ## Skill Set
 
@@ -152,6 +153,13 @@ python3 BFD-Kit/scripts/migrate_bfd_skills.py --mode cutover
 
 - `stage`: import active `.codex/.claude` BFD skills into `BFD-Kit/`
 - `cutover`: push `BFD-Kit/` canonical skills back into active mirrors and back up old mirrors under `archive/skills_migration/`
+
+## Maintainer Notes
+
+- Use `RSCF_A/BFD-Kit` as the source-of-truth content tree when working inside the STM32 workspace.
+- Keep `/home/xuan/RC2026/STM32/RC2026_h7/BFD-Kit` and `/home/xuan/RC2026/STM32/BFD-Kit` synchronized to the same content version.
+- Treat `/home/xuan/RC2026/STM32/BFD-Kit` as the standalone git repository boundary for GitHub publishing.
+- See `BFD-Kit/MAINTENANCE-zh.md` for the formal sync and publishing procedure.
 
 ## Verification
 

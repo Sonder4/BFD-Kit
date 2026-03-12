@@ -18,6 +18,7 @@ BFD-Kit 是一个可移植、CLI 优先的 STM32 AI 调试工具包。
 - `BFD-Kit/resources/stm32/templates/`：芯片族模板（`f4/`、`h7/`）
 - `BFD-Kit/init_project.sh`：一键项目接入入口
 - `BFD-Kit/scripts/migrate_bfd_skills.py`：技能导入/回灌脚本
+- `BFD-Kit/MAINTENANCE-zh.md`：维护者同步与发布规则
 
 ## 技能列表
 
@@ -152,6 +153,13 @@ python3 BFD-Kit/scripts/migrate_bfd_skills.py --mode cutover
 
 - `stage`：把当前 `.codex/.claude` 活动 BFD 技能导入到 `BFD-Kit/`
 - `cutover`：把 `BFD-Kit/` 技能回灌到活动镜像，并自动备份到 `archive/skills_migration/`
+
+## 维护说明
+
+- 在 STM32 工作区内维护时，以 `RSCF_A/BFD-Kit` 为真源目录。
+- `/home/xuan/RC2026/STM32/RC2026_h7/BFD-Kit` 与 `/home/xuan/RC2026/STM32/BFD-Kit` 需要同步到同一内容版本。
+- `/home/xuan/RC2026/STM32/BFD-Kit` 同时是 GitHub 发布用的独立 git 仓库边界。
+- 正式同步与发布流程见 `BFD-Kit/MAINTENANCE-zh.md`。
 
 ## 快速验证
 
