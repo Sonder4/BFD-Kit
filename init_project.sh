@@ -6,6 +6,7 @@ SOURCE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ROOT="$SOURCE_ROOT"
 MODE="init"
 FORCE_REFRESH=0
+INSTALL_RUNTIME=1
 
 print_help() {
   cat <<'USAGE'
@@ -16,6 +17,8 @@ Options:
   --stage-only           Import active bfd-* mirrors into target BFD-Kit only.
   --cutover-only         Push canonical BFD-Kit bfd-* skills into target active mirrors only.
   --bootstrap-only       Refresh target .codex/bfd active profile only.
+  --runtime-only         Install or refresh the target BFD-Kit local Python runtime only.
+  --skip-runtime         Do not install the target BFD-Kit local Python runtime.
   --force-refresh        Force profile refresh even if fingerprint matches.
   -h, --help             Show this help.
 USAGE
@@ -37,6 +40,14 @@ while [ $# -gt 0 ]; do
       ;;
     --bootstrap-only)
       MODE="bootstrap"
+      shift
+      ;;
+    --runtime-only)
+      MODE="runtime"
+      shift
+      ;;
+    --skip-runtime)
+      INSTALL_RUNTIME=0
       shift
       ;;
     --force-refresh)
@@ -63,6 +74,7 @@ TARGET_TEMPLATES_ROOT="${PROJECT_ROOT}/.codex/stm32"
 TARGET_BOOTSTRAP="${PROJECT_ROOT}/.codex/skills/bfd-project-init/scripts/bootstrap.py"
 TARGET_ENSURE="${PROJECT_ROOT}/.codex/skills/bfd-project-init/scripts/ensure_profile.py"
 TARGET_MIGRATE="${PROJECT_ROOT}/BFD-Kit/scripts/migrate_bfd_skills.py"
+TARGET_RUNTIME_INSTALL="${PROJECT_ROOT}/BFD-Kit/scripts/install_python_runtime.sh"
 
 sync_tree() {
   local src="$1"
@@ -115,24 +127,46 @@ run_bootstrap() {
   fi
 }
 
+run_runtime() {
+  ensure_target_bfd_kit
+  if [ ! -f "$TARGET_RUNTIME_INSTALL" ]; then
+    echo "[ERROR] missing target install_python_runtime.sh: $TARGET_RUNTIME_INSTALL" >&2
+    exit 1
+  fi
+  bash "$TARGET_RUNTIME_INSTALL" --bfd-kit-root "$TARGET_BFD_KIT"
+}
+
 mkdir -p "$PROJECT_ROOT" "$TARGET_CODEX_SKILLS" "$TARGET_CLAUDE_SKILLS" "$TARGET_TEMPLATES_ROOT"
 
 echo "INIT_MODE=${MODE}"
 echo "INIT_PROJECT_ROOT=${PROJECT_ROOT}"
 echo "INIT_SOURCE_ROOT=${SOURCE_ROOT}"
+echo "INIT_INSTALL_RUNTIME=${INSTALL_RUNTIME}"
 
 case "$MODE" in
   stage)
     run_stage
+    if [ "$INSTALL_RUNTIME" -eq 1 ]; then
+      run_runtime
+    fi
     ;;
   cutover)
     run_cutover
+    if [ "$INSTALL_RUNTIME" -eq 1 ]; then
+      run_runtime
+    fi
     ;;
   bootstrap)
     run_bootstrap
     ;;
+  runtime)
+    run_runtime
+    ;;
   init)
     run_cutover
     run_bootstrap
+    if [ "$INSTALL_RUNTIME" -eq 1 ]; then
+      run_runtime
+    fi
     ;;
 esac

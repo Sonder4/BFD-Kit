@@ -110,6 +110,16 @@ python3 BFD-Kit/skills/codex/bfd-data-acquisition/scripts/data_acq.py \
 
 This fallback is the default next action after RTT payload failure. Do not invent a new J-Link or GDB command first.
 
+If the required output is not a decoded object snapshot but a high-rate, non-halting fixed-address scalar stream, switch to the native HSS wrapper:
+
+```bash
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol <scalar_symbol_path> \
+  --duration 0.3 \
+  --period-us 1000 \
+  --output logs/data_acq/<scalar_symbol_path>.csv
+```
+
 ## Hard Rules
 
 - Fail-fast if bootstrap profile is missing.

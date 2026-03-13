@@ -68,6 +68,21 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_analysis.py --input lo
 - Match sampling rate to signal characteristics.
 - Confirm ELF symbols before variable-based capture.
 
+## Native HSS Escalation
+
+When the task is high-rate, non-halting sampling of a fixed-address scalar global/static variable on a J-Link target, prefer the native BFD-Kit HSS CLI instead of ad-hoc halt/read/go loops:
+
+```bash
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol chassis_parameter.IMU.yaw \
+  --symbol chassis_parameter.IMU.pitch \
+  --duration 0.3 \
+  --period-us 1000 \
+  --output logs/data_acq/imu_yaw_pitch_hss.csv
+```
+
+This path is limited to fixed-address scalar globals/statics. Repeat `--symbol` for multi-symbol sampling. On `J-Link PLUS`, SEGGER's model limits and local HSS verification both indicate a 10-symbol ceiling; do not treat `hss inspect` raw capability word 2 as the symbol-count limit. The wrapper uses `BFD-Kit/.runtime/venv` automatically after `bash BFD-Kit/init_project.sh --project-root .`. The command writes a wide CSV to `--output` and a metadata sidecar JSON to `--output.meta.json`.
+
 ## Scripts
 
 - `.codex/skills/bfd-data-acquisition/scripts/data_acq.py`

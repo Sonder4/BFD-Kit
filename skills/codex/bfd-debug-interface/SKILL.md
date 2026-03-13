@@ -59,6 +59,16 @@ python3 BFD-Kit/skills/codex/bfd-data-acquisition/scripts/data_acq.py \
 
 If `symbol-auto` cannot decode the target due to unsupported DWARF features, fall back to `bfd-data-acquisition --mode symbol` with an explicit `--decode-profile` or `--layout`.
 
+If the task is instead “sample one fixed-address scalar symbol at high rate without halting the core”, delegate to the native HSS wrapper:
+
+```bash
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol <scalar_symbol_path> \
+  --duration 0.3 \
+  --period-us 1000 \
+  --output logs/data_acq/<scalar_symbol_path>.csv
+```
+
 Use raw GDB/J-Link memory commands only when:
 
 - no ELF symbol is available

@@ -17,6 +17,8 @@ It standardizes IOC discovery, active profile generation, flashing, RTT logging,
 - `BFD-Kit/skills/claude/`: canonical Claude skill pack
 - `BFD-Kit/resources/stm32/templates/`: family templates (`f4/`, `h7/`)
 - `BFD-Kit/init_project.sh`: one-command project onboarding entry
+- `BFD-Kit/scripts/bfd_jlink_hss.sh`: native J-Link HSS wrapper with managed Python runtime
+- `BFD-Kit/.runtime/venv`: local Python runtime installed on demand for portable script execution
 - `BFD-Kit/scripts/migrate_bfd_skills.py`: import/cutover utility
 - `BFD-Kit/MAINTENANCE-zh.md`: maintainer-facing sync and publishing rules
 
@@ -42,6 +44,7 @@ Legacy overlapping STM32 skills are intended to be removed from active mirrors o
 ## New in This Revision
 
 - `bfd-data-acquisition` now supports generic `--mode symbol-auto`
+- `bfd-data-acquisition` now includes a native J-Link HSS CLI path for non-halting fixed-address scalar sampling
 - `symbol-auto` uses `ELF + DWARF` reflection to decode global/static objects without business-specific hardcoding
 - DWARF schemas are cached under `.codex/bfd/dwarf_cache/` for reuse across repeated inspections
 - RTT failure guidance now explicitly routes to RAM sampling instead of ad-hoc GDB/J-Link command design
@@ -64,12 +67,13 @@ Current recommendation:
 ## Fast Init
 
 ```bash
-# One command: install/update BFD skills in the target repo and refresh .codex/bfd profile
+# One command: install/update BFD skills, refresh .codex/bfd profile, and prepare local Python runtime
 bash BFD-Kit/init_project.sh --project-root .
 
 # Optional modes
 bash BFD-Kit/init_project.sh --project-root . --cutover-only
 bash BFD-Kit/init_project.sh --project-root . --bootstrap-only --force-refresh
+bash BFD-Kit/init_project.sh --project-root . --runtime-only
 ```
 
 ## Standard Workflow
@@ -95,6 +99,14 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
   --follow-depth 1 \
   --format summary \
   --output logs/data_acq/<global_symbol>.summary
+
+# 3.6) For high-rate, non-halting scalar sampling, switch to native HSS
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol chassis_parameter.IMU.yaw \
+  --symbol chassis_parameter.IMU.pitch \
+  --duration 0.3 \
+  --period-us 1000 \
+  --output logs/data_acq/imu_yaw_pitch_hss.csv
 
 # 4) One-shot debug session
 ./build_tools/jlink/debug.sh | tee logs/debug/debug_$(date +%Y%m%d_%H%M%S).log
@@ -127,7 +139,17 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
   --count <N> \
   --decode-profile <profile_name> \
   --format csv
+
+# Native J-Link HSS for one or more fixed-address scalar symbols
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol chassis_parameter.IMU.yaw \
+  --symbol chassis_parameter.IMU.pitch \
+  --duration 1 \
+  --period-us 1000 \
+  --output logs/data_acq/imu_yaw_pitch_hss.csv
 ```
+
+On `J-Link PLUS`, SEGGER's model limits and local HSS verification both indicate a 10-symbol ceiling. Do not treat `hss inspect` raw capability word 2 as the symbol-count limit. `hss sample` writes a synchronized wide CSV to `--output` and a metadata sidecar JSON to `--output.meta.json`.
 
 ## Runtime Profile Contract
 
@@ -142,6 +164,10 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
 - Auto-init:
   - `build_tools/jlink/profile_env.sh` calls `ensure_profile.py`
   - `rtt_plot_live.py` prefers `.codex/bfd/active_profile.env`
+- Local runtime:
+  - `BFD-Kit/.runtime/venv`
+  - `BFD-Kit/scripts/install_python_runtime.sh` installs `pyelftools`
+  - `BFD-Kit/scripts/bfd_jlink_hss.sh` uses the local runtime automatically
 
 ## Integrate Into an Existing Project
 
@@ -165,6 +191,8 @@ python3 BFD-Kit/scripts/migrate_bfd_skills.py --mode cutover
 
 ```bash
 bash BFD-Kit/init_project.sh --help
+bash BFD-Kit/scripts/install_python_runtime.sh --help
+python3 BFD-Kit/scripts/bfd_jlink_hss.py --help
 python3 BFD-Kit/scripts/migrate_bfd_skills.py --help
 python3 ./.codex/skills/bfd-project-init/scripts/bootstrap.py --project-root . --mode check
 python3 ./.codex/skills/bfd-project-init/scripts/ensure_profile.py --project-root . --print-env-path

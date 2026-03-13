@@ -86,6 +86,21 @@ Meaning of the primary arguments:
 3. Use `--pointer-symbol` only for stack-published local data.
 4. Use raw `--address` capture only when no stable symbol exists.
 
+## Native HSS Escalation
+
+When the requirement is high-rate, non-halting sampling of a fixed-address scalar global/static variable on a J-Link target, prefer the native HSS CLI path instead of GUI J-Scope automation or halt/read/go loops:
+
+```bash
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol chassis_parameter.IMU.yaw \
+  --symbol chassis_parameter.IMU.pitch \
+  --duration 0.3 \
+  --period-us 1000 \
+  --output logs/data_acq/imu_yaw_pitch_hss.csv
+```
+
+Use this path only for fixed-address scalar globals/statics. Repeat `--symbol` for multi-symbol sampling. On `J-Link PLUS`, SEGGER's model limits and local HSS verification both indicate a 10-symbol ceiling; do not treat `hss inspect` raw capability word 2 as the symbol-count limit. The wrapper uses `BFD-Kit/.runtime/venv` automatically after `bash BFD-Kit/init_project.sh --project-root .`. If the target is a pointer-driven object graph or needs DWARF field decoding, stay on `symbol-auto`. The command writes a wide CSV to `--output` and a metadata sidecar JSON to `--output.meta.json`.
+
 ## Generic Command Templates
 
 ### 1. Decode a Global or Static Object

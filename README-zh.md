@@ -17,6 +17,8 @@ BFD-Kit 是一个可移植、CLI 优先的 STM32 AI 调试工具包。
 - `BFD-Kit/skills/claude/`：Claude 技能源树
 - `BFD-Kit/resources/stm32/templates/`：芯片族模板（`f4/`、`h7/`）
 - `BFD-Kit/init_project.sh`：一键项目接入入口
+- `BFD-Kit/scripts/bfd_jlink_hss.sh`：带本地运行时的原生 J-Link HSS 包装入口
+- `BFD-Kit/.runtime/venv`：按需安装的本地 Python 运行时
 - `BFD-Kit/scripts/migrate_bfd_skills.py`：技能导入/回灌脚本
 - `BFD-Kit/MAINTENANCE-zh.md`：维护者同步与发布规则
 
@@ -42,6 +44,7 @@ BFD-Kit 是一个可移植、CLI 优先的 STM32 AI 调试工具包。
 ## 本次版本新增能力
 
 - `bfd-data-acquisition` 新增通用 `--mode symbol-auto`
+- `bfd-data-acquisition` 新增原生 J-Link HSS CLI，可用于固定地址标量的非阻塞高速采样
 - `symbol-auto` 通过 `ELF + DWARF` 自动反射全局/静态对象，不再依赖业务对象硬编码
 - DWARF schema 会缓存到 `.codex/bfd/dwarf_cache/`，便于重复采样复用
 - RTT 无有效 payload 时，标准流程明确切换到 RAM 采样，而不是临时拼接 GDB/J-Link 命令
@@ -64,12 +67,13 @@ BFD-Kit 是一个可移植、CLI 优先的 STM32 AI 调试工具包。
 ## 快速初始化
 
 ```bash
-# 一条命令完成技能接入/更新，并刷新 .codex/bfd 运行配置
+# 一条命令完成技能接入/更新、刷新 .codex/bfd 运行配置，并准备本地 Python 运行时
 bash BFD-Kit/init_project.sh --project-root .
 
 # 可选模式
 bash BFD-Kit/init_project.sh --project-root . --cutover-only
 bash BFD-Kit/init_project.sh --project-root . --bootstrap-only --force-refresh
+bash BFD-Kit/init_project.sh --project-root . --runtime-only
 ```
 
 ## 标准流程
@@ -95,6 +99,14 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
   --follow-depth 1 \
   --format summary \
   --output logs/data_acq/<global_symbol>.summary
+
+# 3.6) 若需求是高频、非阻塞标量采样，则切到原生 HSS
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol chassis_parameter.IMU.yaw \
+  --symbol chassis_parameter.IMU.pitch \
+  --duration 0.3 \
+  --period-us 1000 \
+  --output logs/data_acq/imu_yaw_pitch_hss.csv
 
 # 4) 一次性调试会话
 ./build_tools/jlink/debug.sh | tee logs/debug/debug_$(date +%Y%m%d_%H%M%S).log
@@ -127,7 +139,17 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
   --count <N> \
   --decode-profile <profile_name> \
   --format csv
+
+# 一个或多个固定地址标量的原生 J-Link HSS 采样
+bash BFD-Kit/scripts/bfd_jlink_hss.sh --json hss sample \
+  --symbol chassis_parameter.IMU.yaw \
+  --symbol chassis_parameter.IMU.pitch \
+  --duration 1 \
+  --period-us 1000 \
+  --output logs/data_acq/imu_yaw_pitch_hss.csv
 ```
+
+对 `J-Link PLUS`，SEGGER 官方型号限制和本地 HSS 实测都表明上限是 10 个 symbol。不要把 `hss inspect` 返回的原始 capability 第 3 个 word 当作 symbol 数量上限。`hss sample` 会把同步宽表 CSV 写到 `--output`，并额外生成 `--output.meta.json` 元数据文件。
 
 ## 运行配置约定
 
@@ -142,6 +164,10 @@ python3 ./.codex/skills/bfd-data-acquisition/scripts/data_acq.py \
 - 自动刷新：
   - `build_tools/jlink/profile_env.sh` 会调用 `ensure_profile.py`
   - `rtt_plot_live.py` 会优先读取 `.codex/bfd/active_profile.env`
+- 本地运行时：
+  - `BFD-Kit/.runtime/venv`
+  - `BFD-Kit/scripts/install_python_runtime.sh` 负责安装 `pyelftools`
+  - `BFD-Kit/scripts/bfd_jlink_hss.sh` 会自动使用该本地运行时
 
 ## 在现有项目中接入
 
@@ -165,6 +191,8 @@ python3 BFD-Kit/scripts/migrate_bfd_skills.py --mode cutover
 
 ```bash
 bash BFD-Kit/init_project.sh --help
+bash BFD-Kit/scripts/install_python_runtime.sh --help
+python3 BFD-Kit/scripts/bfd_jlink_hss.py --help
 python3 BFD-Kit/scripts/migrate_bfd_skills.py --help
 python3 ./.codex/skills/bfd-project-init/scripts/bootstrap.py --project-root . --mode check
 python3 ./.codex/skills/bfd-project-init/scripts/ensure_profile.py --project-root . --print-env-path

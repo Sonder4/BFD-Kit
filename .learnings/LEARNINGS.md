@@ -70,3 +70,50 @@
     - BFD-Kit/skills/codex/bfd-data-acquisition/SKILL.md
     - BFD-Kit/skills/codex/bfd-debug-interface/SKILL.md
     - BFD-Kit/skills/codex/bfd-rtt-logger/SKILL.md
+
+- id: learning-20260313-jlink-hss-native-nonhalting-path
+  category: best_practice
+  area: debug
+  status: promoted
+  summary: 当任务要求 J-Link 高速、非阻塞、无 GUI 输入依赖地采样固定地址标量变量时，应优先使用基于 `libjlinkarm.so` 的原生 HSS CLI，而不是 J-Scope 自动化或 halt/read/go 轮询。
+  promoted_to:
+    - BFD-Kit/scripts/bfd_jlink_hss.py
+    - BFD-Kit/scripts/bfd_jlink_hss.sh
+    - BFD-Kit/scripts/install_python_runtime.sh
+    - BFD-Kit/init_project.sh
+    - BFD-Kit/skills/codex/bfd-data-acquisition/SKILL.md
+    - BFD-Kit/skills/claude/bfd-data-acquisition/SKILL.md
+    - BFD-Kit/README.md
+    - BFD-Kit/README-zh.md
+    - BFD-Kit/README-en.md
+
+- id: learning-20260314-jlink-hss-multi-block-descriptor
+  category: correction
+  area: debug
+  status: promoted
+  summary: J-Link HSS 的多 block 原生描述符在当前 DLL 上需要 16-byte stride；若按 8-byte `{address, byte_size}` 传入，第二个 block 会被解释为 `0 bytes @ 0x00000000`，导致输出只包含第一个 symbol。
+  promoted_to:
+    - BFD-Kit/scripts/bfd_jlink_hss_core/jlink_dll.py
+    - BFD-Kit/scripts/bfd_jlink_hss_core/hss_sampling.py
+    - BFD-Kit/scripts/tests/test_bfd_jlink_hss_core.py
+    - BFD-Kit/scripts/tests/test_bfd_jlink_hss_cli.py
+    - BFD-Kit/skills/codex/bfd-data-acquisition/SKILL.md
+    - BFD-Kit/skills/claude/bfd-data-acquisition/SKILL.md
+    - BFD-Kit/README.md
+    - BFD-Kit/README-zh.md
+    - BFD-Kit/README-en.md
+
+- id: learning-20260314-jlink-hss-cap-word-2-not-var-limit
+  category: correction
+  area: debug
+  status: promoted
+  summary: `JLINK_HSS_GetCaps()` 返回的第 3 个 raw word 不能直接解释为最大变量数；在当前 `J-Link PLUS` 上它读到 2，但原生 HSS 和官方型号限制都表明实际可采样上限是 10 个变量。
+  promoted_to:
+    - BFD-Kit/scripts/bfd_jlink_hss_core/jlink_dll.py
+    - BFD-Kit/scripts/bfd_jlink_hss_core/hss_sampling.py
+    - BFD-Kit/scripts/tests/test_bfd_jlink_hss_core.py
+    - BFD-Kit/README.md
+    - BFD-Kit/README-zh.md
+    - BFD-Kit/README-en.md
+    - BFD-Kit/skills/codex/bfd-data-acquisition/SKILL.md
+    - BFD-Kit/skills/claude/bfd-data-acquisition/SKILL.md

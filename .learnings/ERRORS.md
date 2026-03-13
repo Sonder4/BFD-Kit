@@ -36,3 +36,13 @@
   area: scripts
   status: resolved
   summary: symbol-auto 的 DWARF cache 二次回读未命中，根因是 `long long unsigned int` 等基础类型未被视为内建标量，导致递归类型装载回退到 rebuild；现已补齐基础类型白名单与通用解码支持。
+
+- id: error-20260313-jscope-gui-automation-input-leak
+  area: debug
+  status: resolved
+  summary: 基于 GUI 焦点和按键注入的 J-Scope 自动化会把控制字符和文本误输到其他窗口，且不满足“无输入法/按键依赖”的要求；现已改为 `libjlinkarm.so` 原生 HSS CLI 路径。
+
+- id: error-20260313-bfd-kit-hss-external-cli-dependency
+  area: scripts
+  status: resolved
+  summary: 原生 HSS 能力最初只存在于外部 `CLI-Anything` 仓库，导致 BFD-Kit skill 文档能引用但目标项目无法直接分发使用；现已将 HSS CLI、运行时安装脚本和 skill 入口完整收敛到 BFD-Kit。
