@@ -1,6 +1,6 @@
 # BFD-Kit: AI STM32 Debug Toolkit
 
-[简体中文](README.md) | English
+[简体中文](README-zh.md) | [English](README-en.md)
 
 BFD-Kit is a portable, CLI-first toolkit for AI-assisted STM32 debug workflows.
 It standardizes `.ioc` discovery, runtime profile generation, code regeneration, flashing, RTT logging, register/data capture, and fault evidence collection for embedded projects.
@@ -8,6 +8,10 @@ It standardizes `.ioc` discovery, runtime profile generation, code regeneration,
 ## Project Note
 
 This project contains STM32 Skills developed by NCU Roboteam during work with the DJI Type-A board and the DM MC-02 development board. There is still plenty of room for improvement, and issues are welcome.
+
+- This project also leverages [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything) to handle J-Link related workflows through a CLI-first path.
+- The toolkit currently works best on Ubuntu 22.04.
+- Windows support has not been ported yet.
 
 ## Scope
 

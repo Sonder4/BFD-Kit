@@ -1,7 +1,15 @@
 # BFD-Kit：AI STM32 调试工具包
 
+[简体中文](README-zh.md) | [English](README-en.md)
+
 BFD-Kit 是一个可移植、CLI 优先的 STM32 AI 调试工具包。
 它统一了 IOC 识别、运行配置生成、烧录、RTT 日志、寄存器/数据采集和故障证据归档流程。
+
+## 项目说明
+
+- 本项目借助 [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything) 对 J-Link 相关流程进行了 CLI 化处理。
+- 当前版本在 Ubuntu 22.04 下使用最佳。
+- Windows 版本尚未完成移植。
 
 ## 适用范围
 
