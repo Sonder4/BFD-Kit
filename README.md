@@ -20,7 +20,7 @@ It standardizes IOC discovery, active profile generation, flashing, RTT logging,
 - `BFD-Kit/scripts/bfd_jlink_hss.sh`: native J-Link HSS wrapper with managed Python runtime
 - `BFD-Kit/.runtime/venv`: local Python runtime installed on demand for portable script execution
 - `BFD-Kit/scripts/migrate_bfd_skills.py`: import/cutover utility
-- `BFD-Kit/MAINTENANCE-zh.md`: maintainer-facing sync and publishing rules
+- `BFD-Kit/MAINTENANCE-zh.md`: maintainer-facing maintenance checklist
 
 ## Skill Set
 
@@ -182,10 +182,10 @@ python3 BFD-Kit/scripts/migrate_bfd_skills.py --mode cutover
 
 ## Maintainer Notes
 
-- Use `RSCF_A/BFD-Kit` as the source-of-truth content tree when working inside the STM32 workspace.
-- Keep `/home/xuan/RC2026/STM32/RC2026_h7/BFD-Kit` and `/home/xuan/RC2026/STM32/BFD-Kit` synchronized to the same content version.
-- Treat `/home/xuan/RC2026/STM32/BFD-Kit` as the standalone git repository boundary for GitHub publishing.
-- See `BFD-Kit/MAINTENANCE-zh.md` for the formal sync and publishing procedure.
+- Keep BFD-Kit skills, scripts, docs, and `.learnings` aligned across maintained copies.
+- Avoid exposing local absolute paths, workspace topology, mirror relationships, or repository-boundary details in project-facing docs and prompts.
+- Before publishing from any repository, verify the current repo root, remote, branch, and worktree state.
+- See `BFD-Kit/MAINTENANCE-zh.md` for the generic maintenance checklist.
 
 ## Verification
 

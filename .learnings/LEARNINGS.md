@@ -117,3 +117,14 @@
     - BFD-Kit/README-en.md
     - BFD-Kit/skills/codex/bfd-data-acquisition/SKILL.md
     - BFD-Kit/skills/claude/bfd-data-acquisition/SKILL.md
+
+- id: learning-20260314-bfd-doc-sanitization
+  category: best_practice
+  area: docs
+  status: promoted
+  summary: 面向项目使用者的 BFD-Kit 文档与代理提示词应保持通用维护表述，不暴露本地绝对路径、工作区拓扑、镜像关系或仓库发布边界；内部真源规则只保留在工作区级 AGENTS 文档。
+  promoted_to:
+    - BFD-Kit/README.md
+    - BFD-Kit/README-zh.md
+    - BFD-Kit/STM32_AGENT_PROMPT-zh.md
+    - BFD-Kit/MAINTENANCE-zh.md

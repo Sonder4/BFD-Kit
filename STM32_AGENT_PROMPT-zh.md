@@ -13,8 +13,8 @@
 5. 所有日志保存在仓库内的 `logs/`。
 6. 若技能缺失，优先使用 `bash BFD-Kit/init_project.sh --project-root .` 回灌活动目录。
 7. 对全局/静态对象的 RAM 核查，默认优先使用 `bfd-data-acquisition --mode symbol-auto`。
-8. 维护 BFD-Kit 时，以 `RSCF_A/BFD-Kit` 为真源，并同步到 `RC2026_h7/BFD-Kit` 与独立仓库 `/home/xuan/RC2026/STM32/BFD-Kit`。
-9. 发布到 GitHub 时，只把 `/home/xuan/RC2026/STM32/BFD-Kit` 作为独立 git 仓库处理，不把父目录 `/home/xuan/RC2026/STM32` 当成发布边界。
+8. 维护 BFD-Kit 时，保持技能、脚本、文档和 `.learnings` 在各维护副本之间一致，且不要暴露本地工作区结构。
+9. 发布前先在目标仓库根目录核对 remote、branch 与 worktree 状态，再执行提交和推送。
 
 ## 推荐流程
 

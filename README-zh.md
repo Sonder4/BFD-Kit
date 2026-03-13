@@ -20,7 +20,7 @@ BFD-Kit 是一个可移植、CLI 优先的 STM32 AI 调试工具包。
 - `BFD-Kit/scripts/bfd_jlink_hss.sh`：带本地运行时的原生 J-Link HSS 包装入口
 - `BFD-Kit/.runtime/venv`：按需安装的本地 Python 运行时
 - `BFD-Kit/scripts/migrate_bfd_skills.py`：技能导入/回灌脚本
-- `BFD-Kit/MAINTENANCE-zh.md`：维护者同步与发布规则
+- `BFD-Kit/MAINTENANCE-zh.md`：维护者维护清单
 
 ## 技能列表
 
@@ -182,10 +182,10 @@ python3 BFD-Kit/scripts/migrate_bfd_skills.py --mode cutover
 
 ## 维护说明
 
-- 在 STM32 工作区内维护时，以 `RSCF_A/BFD-Kit` 为真源目录。
-- `/home/xuan/RC2026/STM32/RC2026_h7/BFD-Kit` 与 `/home/xuan/RC2026/STM32/BFD-Kit` 需要同步到同一内容版本。
-- `/home/xuan/RC2026/STM32/BFD-Kit` 同时是 GitHub 发布用的独立 git 仓库边界。
-- 正式同步与发布流程见 `BFD-Kit/MAINTENANCE-zh.md`。
+- 维护多份 BFD-Kit 副本时，应保持技能、脚本、文档和 `.learnings` 内容一致。
+- 对外文档与代理提示词中不要暴露本地绝对路径、工作区拓扑、镜像关系或仓库边界细节。
+- 从任意仓库发布前，先核对当前仓库根目录、remote、branch 和 worktree 状态。
+- 通用维护清单见 `BFD-Kit/MAINTENANCE-zh.md`。
 
 ## 快速验证
 
